@@ -4,6 +4,7 @@
 telegram-channel.json
 openclaw-info.json
 .agentbase/
+helpDesk68Bot/
 
 # Excel temp/lock files
 ~$*.xlsx

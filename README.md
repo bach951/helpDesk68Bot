@@ -24,10 +24,9 @@ it-helpdesk-bot/          # code bot (FastAPI)
   main.py                 # server: /health + /telegram/webhook
   requirements.txt
   Dockerfile
-  contacts.xlsx           # 100 dòng đầu mối (sample)
+  contacts.xlsx           # 100 dòng đầu mối (bundled trong Docker image)
+  generate_contacts.py    # script sinh contacts.xlsx (sửa data → rerun)
   .env.example            # template env vars (copy → .env, điền secret)
-contacts.xlsx             # file Excel nguồn (copy vào it-helpdesk-bot/ khi build)
-generate_contacts.py      # script sinh contacts.xlsx (sửa data → rerun)
 agent/                    # greennode-agentbase-skills (deploy/monitor scripts)
 .greennode.json.example   # template IAM credentials
 ```
@@ -103,9 +102,9 @@ curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
 ## Cập nhật Excel đầu mối
 
 ```bash
-# Sửa data trong generate_contacts.py → rerun:
-python generate_contacts.py              # sinh lại contacts.xlsx
-cp contacts.xlsx it-helpdesk-bot/contacts.xlsx
+# Sửa data trong it-helpdesk-bot/generate_contacts.py → rerun:
+cd it-helpdesk-bot
+python generate_contacts.py              # sinh lại contacts.xlsx tại đây
 # Rebuild + redeploy (xem Deploy)
 ```
 
