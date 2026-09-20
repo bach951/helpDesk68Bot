@@ -1,9 +1,7 @@
 import os
 import logging
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
-from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import httpx
@@ -118,22 +116,14 @@ async def download_telegram_photo(file_id: str) -> bytes:
 def send_email(to_addr: str, from_email: str, subject: str, body: str,
                attachment: bytes | None = None) -> None:
     full_body = f"Email nay duoc gui thay mat cho {from_email} boi IT Helpdesk Bot.\n\n{body}"
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = GMAIL_USER
+    msg["To"] = to_addr
+    msg["Reply-To"] = from_email
+    msg.set_content(full_body)
     if attachment:
-        msg = MIMEMultipart()
-        msg["Subject"] = subject
-        msg["From"] = GMAIL_USER
-        msg["To"] = to_addr
-        msg["Reply-To"] = from_email
-        msg.attach(MIMEText(full_body, "plain", "utf-8"))
-        img = MIMEImage(attachment)
-        img.add_header("Content-Disposition", "attachment", filename="screenshot.png")
-        msg.attach(img)
-    else:
-        msg = MIMEText(full_body, "plain", "utf-8")
-        msg["Subject"] = subject
-        msg["From"] = GMAIL_USER
-        msg["To"] = to_addr
-        msg["Reply-To"] = from_email
+        msg.add_attachment(attachment, maintype="image", subtype="png", filename="screenshot.png")
     with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as srv:
         srv.starttls()
         srv.login(GMAIL_USER, GMAIL_APP_PASSWORD)
@@ -175,7 +165,7 @@ async def telegram_webhook(request: Request):
             st["dept"] = contacts[0]["dept"]
             await telegram_send(
                 chat_id,
-                f"Nập email của bạn (để {st['dept'] or 'IT'} reply lại cho bạn) hoặc /cancel:",
+                f"Nhập email của bạn (để {st['dept'] or 'IT'} reply lại cho bạn) hoặc /cancel:",
             )
             return JSONResponse({"ok": True})
         elif text.isdigit() and 1 <= int(text) <= len(contacts):
@@ -186,7 +176,7 @@ async def telegram_webhook(request: Request):
             await telegram_send(
                 chat_id,
                 f"Đã chọn: <b>{contacts[idx]['dept']}</b> ({contacts[idx]['email']})\n"
-                f"Nập email của bạn (để {st['dept']} reply lại cho bạn) hoặc /cancel:",
+                f"Nhập email của bạn (để {st['dept']} reply lại cho bạn) hoặc /cancel:",
             )
             return JSONResponse({"ok": True})
         else:
@@ -199,7 +189,7 @@ async def telegram_webhook(request: Request):
         await telegram_send(
             chat_id,
             f"Email của bạn: <b>{text}</b>\n"
-            f"Nập tiêu đề email (hoặc /cancel để hủy):",
+            f"Nhập tiêu đề email (hoặc /cancel để hủy):",
         )
         return JSONResponse({"ok": True})
 
